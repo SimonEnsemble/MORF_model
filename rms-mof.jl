@@ -388,13 +388,62 @@ begin
 		
 		# w
 		@assert isapprox(w(material, kT, P), eval_sym(w_symbolic, material, kT, P))
+		"tests pass"
 	end
 	
 	test_symbolic_expressions()
 end
 
-# ╔═╡ 4658aca4-fc8e-11ea-04b5-b78a558415a3
+# ╔═╡ 551fba04-fc8e-11ea-2058-2bda590970f8
+md"
+## cognate Langmuir material comparison
+"
 
+# ╔═╡ 4658aca4-fc8e-11ea-04b5-b78a558415a3
+begin
+	"""
+	What is the energy of adsorption ϵ□ for a Langmuir material 
+	that exhibits the same K as the RMS-MOF at temperature kT?
+	K□ = e^(-ϵ□/kT)
+	set K = K□ => ϵ□ = - kT * log(K)
+	"""
+	get_ϵ□(material::Material, kT::Real) = -kT * log(K(material, kT))
+	
+	function ∂K□_∂kT(ϵ□::Float64, kT::Float64)
+	    K□ = exp(-ϵ□ / kT)
+	    return K□ * ϵ□ / kT ^ 2
+	end
+	
+	function n□(ϵ□::Float64, kT::Real, P::Float64)
+	    K□ = exp(-ϵ□ / kT)
+	    KβP = K□ * P / kT
+	    return KβP / (1 + KβP)
+	end
+	
+	# ! IMPORTANT! keep ϵ□ fixed here.
+	#    i.e. don't re-set ϵ□...
+	function ∂n□_∂kT(ϵ□::Float64, kT::Real, P::Float64)
+	    # view n as a function of kT only.
+	    n□_of_kT(x) = n□(ϵ□, x[1], P) # x = [kT]
+	    ∂n□_∂kT_of_T = x -> ForwardDiff.gradient(n□_of_kT, x) # x plays role of kT
+	    return ∂n□_∂kT_of_T([kT])[1]
+	end
+	
+	function test_□_stuff()
+		ϵ□_test = randn()
+		RMSMOF□□ = Material(randn(), ϵ□_test, ϵ□_test)
+		RMSMOFrand = Material(rand(), randn(), randn())
+		kT = rand()
+		P = rand()
+		
+		@assert exp(-get_ϵ□(RMSMOFrand, kT_room) / kT_room) ≈ K(RMSMOFrand, kT_room)
+		@assert get_ϵ□(RMSMOF□□, kT_room) ≈ ϵ□_test
+		@assert n□(ϵ□_test, kT, P) ≈ n(RMSMOF□□, kT, P)
+		"tests pass"
+	end
+	
+	test_□_stuff()
+end
 
 # ╔═╡ Cell order:
 # ╠═86b87b78-fc7f-11ea-2e71-13a4099f7ca2
@@ -419,4 +468,5 @@ end
 # ╠═45f2e688-fc8d-11ea-169a-fd11486da805
 # ╟─6b68afd0-fc8d-11ea-30f2-cd181b6d5fcf
 # ╠═5719a1d6-fc8d-11ea-000b-ddcb985f72f0
+# ╟─551fba04-fc8e-11ea-2058-2bda590970f8
 # ╠═4658aca4-fc8e-11ea-04b5-b78a558415a3
