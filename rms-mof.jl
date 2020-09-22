@@ -164,9 +164,61 @@ begin
 	gcf()
 end
 
+# ╔═╡ 596e3acc-fc89-11ea-1fe3-cb9bf6d05345
+md"
+# materials space
+"
+
+# ╔═╡ 73c59f08-fc89-11ea-153a-7987634c790f
+begin
+	δ = 1.0
+	ϵ♡s = range(-5.0, 0.0, length=10)
+	ϵΔs = range(-5.0, 0.0, length=10)
+	
+	fig, ax = subplots(figsize=(4, 4))
+	plot(ϵ♡s, ϵΔs, color=colorz["peace"], lw=3, label="peace")
+	plot(ϵ♡s, ϵ♡s .+ δ, color="k", linestyle="--")
+	
+	xticks([])
+	yticks([])
+	
+	fill_between(ϵ♡s, -5.0, ϵ♡s, color=colorz["cooperation"], label="cooperation")
+	fill_between(ϵ♡s, 0.0, ϵ♡s, color=colorz["competition"], label="competition")
+	xlim([-5.4, 0.1])
+	ylim([-5.4, 0.1])
+	
+	props = Dict("boxstyle"=>"round", "facecolor"=>"white", "alpha"=>0.5)
+	text(-3.8, -0.75, "competition", ha="center", va="center", bbox=props)
+	text(-1.25, -3.8, "cooperation", ha="center", va="center", bbox=props)
+	text(-4, -4, "peace", ha="center", va="center", color="k", bbox=props, rotation=45)
+	
+	text(-2.5, -2.0, "wheel wins", ha="center", va="center", rotation=45.0, color="k")
+	text(-3.0, -1.5, "gas wins", ha="center", va="center", rotation=45.0, color="k")
+	
+	plot([-δ, -δ], [-0.15, 0.15], color="k", clip_on=false)
+	text(-δ, 0.4, L"$-\delta$", ha="center", va="center")
+	text(0.0, 0.4, L"$0$", ha="center", va="center")
+	text(0.4, 0.0, L"$0$", ha="center", va="center")
+	text(0.0, -5.5, L"$\epsilon_\bigtriangleup$", ha="center", va="center", fontsize=18)
+	text(-5.5, 0.0, L"$\epsilon_\heartsuit$", ha="center", va="center", fontsize=18)
+	ax.annotate("", xy=(-5.2, 0.0), xytext=(0.2, 0.0),
+	            arrowprops=Dict("facecolor"=>"k", "lw"=>1))
+	ax.annotate("", xy=(0.0, -5.2), xytext=(0.0, 0.2),
+	            arrowprops=Dict("facecolor"=>"k", "lw"=>1))
+	
+	ax.set_aspect("equal", adjustable="box")
+	tight_layout()
+	
+	savefig("mat_space.pdf", format="pdf")
+	
+	gcf()
+end
+
 # ╔═╡ Cell order:
 # ╠═86b87b78-fc7f-11ea-2e71-13a4099f7ca2
 # ╠═d30e022c-fc7f-11ea-2b57-775cc0121f5e
 # ╟─d28bb768-fc7f-11ea-29c2-235136a39b07
 # ╠═66d4b94a-fc85-11ea-0654-f72ec2b2e49f
 # ╠═ed4675d6-fc7f-11ea-0afa-3de8c3953620
+# ╟─596e3acc-fc89-11ea-1fe3-cb9bf6d05345
+# ╠═73c59f08-fc89-11ea-153a-7987634c790f
