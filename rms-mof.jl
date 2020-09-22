@@ -278,6 +278,14 @@ begin
 	end
 	
 	function w(material::Material, kT::Real, P::Float64)
+		n_here = n(material, kT, P)
+		w_n0 = exp(-material.δ / kT) / (1+ exp(-material.δ / kT))
+		θ = material.ϵ♡ + material.δ - material.ϵ△
+		w_n1 = exp(-θ / kT) / (1 + exp(-θ / kT))
+		return n_here * w_n1 + (1- n_here) * w_n0
+	end
+	
+	function w_old(material::Material, kT::Real, P::Float64)
 		pΔ_n0 = exp(-material.δ / kT) / (1 + exp(-material.δ / kT))
 		K♡βP = exp(-material.ϵ♡ / kT) * P / kT
 		KβP = K(material, kT) * P / kT
@@ -295,6 +303,10 @@ begin
 	    return ϵ□
 	end
 	
+	test_material = Material(randn(), randn(), randn())
+	kT_test = rand()
+	P_test = rand()
+	@assert w_old(test_material, kT_test, P_test) ≈ w(test_material, kT_test, P_test)
 	@assert ∂E□_∂n□(-4.0) ≈ ∂E_∂n(Material(0.0, -4.0, -4.0), rand())
 	@assert ∂E□_∂n□(-4.0) ≈ ∂E_∂n(Material(2.0, -4.0, -4.0), rand())
 	@assert ∂E□_∂n□(-2.0) ≈ ∂E_∂n(Material(2.0, -4.0, 0.0), rand()) # weird case
@@ -770,11 +782,7 @@ begin
 		# determine cognate Langmuir material at reference temperature
 		for (i, kT) in enumerate(kTs)
 			for (j, P) in enumerate(Ps)
-				if P / kT > 1
-					w_of_PT[j, i] = NaN
-				else
-					w_of_PT[j, i] = w(rms_mof, kT, P)
-				end
+				w_of_PT[j, i] = w(rms_mof, kT, P)
 			end
 		end
 		
@@ -822,6 +830,9 @@ w(rms_mofs["wheel-gas competition (detente)"], 0.1, 0.0)
 # 	gcf()
 # end
 
+# ╔═╡ 6fa7189e-fd16-11ea-01b0-dbfe1768fcb9
+
+
 # ╔═╡ Cell order:
 # ╠═86b87b78-fc7f-11ea-2e71-13a4099f7ca2
 # ╠═d30e022c-fc7f-11ea-2b57-775cc0121f5e
@@ -863,3 +874,4 @@ w(rms_mofs["wheel-gas competition (detente)"], 0.1, 0.0)
 # ╠═d07b1a82-fcfd-11ea-0213-692a0eb81f85
 # ╠═a59d20e4-fd02-11ea-02b9-e9ca9635184d
 # ╠═422343be-fcff-11ea-2cee-ad0603a5a57d
+# ╠═6fa7189e-fd16-11ea-01b0-dbfe1768fcb9
