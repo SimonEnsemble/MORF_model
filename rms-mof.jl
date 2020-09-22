@@ -214,6 +214,39 @@ begin
 	gcf()
 end
 
+# ╔═╡ 4b8617e4-fc8a-11ea-0cd1-2ffba5c42303
+md"
+# Langmuir isotherm
+"
+
+# ╔═╡ 517c173e-fc8a-11ea-28e6-ab0c43713125
+begin
+	kp = range(0.0, 10.0, length=200)
+	exp_n = kp ./ (1 .+ kp)
+	
+	figure(figsize=(6.4*.85, 4.8*.85))
+	plot(kp, exp_n, linewidth=4, color="C4")
+	ϵ=1e-1
+	xlim([0-ϵ, maximum(kp)+ϵ])
+	ϵ=1e-2
+	ylim([0-ϵ, 1+ϵ])
+	xlabel(L"$K\beta P$")
+	ylabel(L"$\langle n \rangle$")
+	draw_axes()
+	text(6, 0.4, L"$\langle n \rangle=\dfrac{K\beta P}{1+K\beta P}$", fontsize=18, 
+		bbox=Dict("boxstyle"=>"round", "facecolor"=>"wheat", "alpha"=>0.3))
+	vlines(1, 0, 0.5, color="0.7", linestyle="--")
+	hlines(0.5, 0, 1, color="0.7", linestyle="--")
+	# title("Langmuir adsorption")
+	tight_layout()
+	savefig("langmuir.pdf", format="pdf")
+	
+	gcf()
+end
+
+# ╔═╡ c5d406d2-fc8a-11ea-378d-7388e9ad53d4
+
+
 # ╔═╡ Cell order:
 # ╠═86b87b78-fc7f-11ea-2e71-13a4099f7ca2
 # ╠═d30e022c-fc7f-11ea-2b57-775cc0121f5e
@@ -222,3 +255,6 @@ end
 # ╠═ed4675d6-fc7f-11ea-0afa-3de8c3953620
 # ╟─596e3acc-fc89-11ea-1fe3-cb9bf6d05345
 # ╠═73c59f08-fc89-11ea-153a-7987634c790f
+# ╟─4b8617e4-fc8a-11ea-0cd1-2ffba5c42303
+# ╠═517c173e-fc8a-11ea-28e6-ab0c43713125
+# ╠═c5d406d2-fc8a-11ea-378d-7388e9ad53d4
