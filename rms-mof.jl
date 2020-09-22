@@ -531,13 +531,44 @@ begin
 		vmax=maximum(abs.(∂E_∂N_diffs)), vmin=-maximum(abs.(∂E_∂N_diffs)))
 	plot(ϵ_range, ϵ_range .+ 2 * δ, linestyle="--", color="0.5")
 	plot(ϵ_range, ϵ_range, linestyle="--", color="0.5")
-	text(-5, -5, L"$\epsilon_\bigtriangleup=\epsilon_\heartsuit$", ha="center", va="center", rotation=45, bbox=props)
-	text(-8, -8+2*δ, L"$\epsilon_\bigtriangleup=\epsilon_\heartsuit+2\delta$", ha="center", va="center", rotation=45, bbox=props)
+	text(-5, -5, L"$\epsilon_\bigtriangleup=\epsilon_\heartsuit$", ha="center", va="center", rotation=45, bbox=props□)
+	text(-8, -8+2*δ, L"$\epsilon_\bigtriangleup=\epsilon_\heartsuit+2\delta$", ha="center", va="center", rotation=45, bbox=props□)
 	text(-5, -9, L"$k_BT_0=$" * @sprintf("%.2f kJ/mol", kT) * "\n" * L"$\delta=$" * @sprintf("%.2f kJ/mol", δ), ha="left", va="center")
 	decorate_fig(L"$\frac{\partial \langle E\rangle }{\partial \langle n \rangle}-\frac{\partial \langle E\rangle_L }{\partial \langle n \rangle_L}$ [kJ/mol]")
 	tight_layout()
 	savefig("dE_dNs.pdf", format="pdf")
 	gcf()
+end
+
+# ╔═╡ f3b32dda-fc94-11ea-021b-e1632c4cce6a
+md"
+## wheel stuff
+"
+
+# ╔═╡ 102bd92a-fc96-11ea-3301-d5ccbd0b3613
+begin
+	rms_mofs = Dict(
+	    ##
+	    # COMPETITION: gas loves ♡, so does wheel. 
+	    #              ϵ♡ < ϵ△
+	    #  gas wins: ϵ♡ + δ < ϵ△
+	#     "competition (gas wins)" => Material(δ, -δ*3, -δ),
+	#     "competition (gas wins by far)" => Material(δ, -15.0, -5.0),
+	#     #  whl wins: ϵ♡ + δ > ϵ△
+	#     "competition (whl wins)" => Material(δ, -δ*0.5, -δ*0.25),
+	    #  detent: ϵ♡ + δ = ϵ△
+	    "wheel-gas competition (detente)" => Material(5.0, -8.0, -3.0),
+	    ##
+	    # COOPERATION: gas loves △, wheel loves ♡
+	    #              ϵ△ < ϵ♡
+	    "wheel-gas cooperation"            => Material(1.0, -1.0, -5.0)
+	)
+	
+	# @assert rms_mofs["competition (gas wins)"].ϵ△ > rms_mofs["competition (gas wins)"].ϵ♡ + rms_mofs["competition (gas wins)"].δ
+	# @assert rms_mofs["competition (whl wins)"].ϵ△ < rms_mofs["competition (whl wins)"].ϵ♡ + rms_mofs["competition (whl wins)"].δ
+	# @assert rms_mofs["competition (whl wins)"].ϵ△ > rms_mofs["competition (whl wins)"].ϵ♡
+	@assert rms_mofs["wheel-gas cooperation"].ϵ△ < rms_mofs["wheel-gas cooperation"].ϵ♡
+	@assert rms_mofs["wheel-gas competition (detente)"].ϵ△ ≈ rms_mofs["wheel-gas competition (detente)"].ϵ♡ + rms_mofs["wheel-gas competition (detente)"].δ
 end
 
 # ╔═╡ Cell order:
@@ -569,3 +600,5 @@ end
 # ╠═7f6dbbdc-fc91-11ea-1212-63b9919b72f5
 # ╠═392ad090-fc93-11ea-109b-5772e9d1ead3
 # ╠═8febf99a-fc93-11ea-2437-434f7dd1b923
+# ╟─f3b32dda-fc94-11ea-021b-e1632c4cce6a
+# ╠═102bd92a-fc96-11ea-3301-d5ccbd0b3613
