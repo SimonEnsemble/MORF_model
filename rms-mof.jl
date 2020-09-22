@@ -449,12 +449,12 @@ end
 begin
 	δ = 3.0
 	kT = kT_room
-	nb_pts = 50
+	nb_pts = 100
 	ϵ_range = range(-10.0, stop=0.0, length=nb_pts)
 	
 	ϵ□s = zeros(nb_pts, nb_pts)
-	∂K_∂T_diffs = zeros(nb_pts, nb_pts)
 	∂E_∂N_diffs = zeros(nb_pts, nb_pts)
+	∂K_∂T_diffs = zeros(nb_pts, nb_pts)
 	for (i, ϵ♡) in enumerate(ϵ_range)
 	    for (j, ϵ△) in enumerate(ϵ_range)
 	        material = Material(δ, ϵ♡, ϵ△)
@@ -465,8 +465,8 @@ begin
 	        @assert K□ ≈ K(material, kT)
 	        
 	        ϵ□s[j, i] = ϵ□
-	        ∂E_∂N_diffs[j, i] = ∂E_∂n(material, kT) - ∂E□_∂n□(ϵ□)
 	        ∂K_∂T_diffs[j, i] = (∂K_∂kT(material, kT) - ∂K□_∂kT(ϵ□, kT)) / K□
+			∂E_∂N_diffs[j, i] = ∂E_∂n(material, kT) - ∂E□_∂n□(ϵ□)
 			
 	        @assert ∂K_∂kT(material, kT) <= 0.0
 	        @assert ∂K□_∂kT(ϵ□, kT) <= 0.0
@@ -542,7 +542,7 @@ end
 
 # ╔═╡ f3b32dda-fc94-11ea-021b-e1632c4cce6a
 md"
-## wheel stuff
+## $T$-sensitivity of $\langle n \rangle$
 "
 
 # ╔═╡ 102bd92a-fc96-11ea-3301-d5ccbd0b3613
@@ -552,7 +552,7 @@ begin
 	    # COMPETITION: gas loves ♡, so does wheel. 
 	    #              ϵ♡ < ϵ△
 	    #  gas wins: ϵ♡ + δ < ϵ△
-	#     "competition (gas wins)" => Material(δ, -δ*3, -δ),
+	    "competition (gas wins)" => Material(δ, -δ*3, -δ),
 	#     "competition (gas wins by far)" => Material(δ, -15.0, -5.0),
 	#     #  whl wins: ϵ♡ + δ > ϵ△
 	#     "competition (whl wins)" => Material(δ, -δ*0.5, -δ*0.25),
@@ -570,6 +570,257 @@ begin
 	@assert rms_mofs["wheel-gas cooperation"].ϵ△ < rms_mofs["wheel-gas cooperation"].ϵ♡
 	@assert rms_mofs["wheel-gas competition (detente)"].ϵ△ ≈ rms_mofs["wheel-gas competition (detente)"].ϵ♡ + rms_mofs["wheel-gas competition (detente)"].δ
 end
+
+# ╔═╡ 4fb2bbae-fcf5-11ea-0869-1b6865b7249f
+begin
+	kTs = range(0.0, 5.0, length=nb_pts)
+	Ps = range(0.0, 1.0, length=nb_pts)
+	n_diff = zeros(nb_pts, nb_pts)
+	
+	for (rms_mof_class, rms_mof) in rms_mofs
+		# determine cognate Langmuir material at reference temperature
+	    ϵ□ = get_ϵ□(rms_mof, kT_room)
+	    for (i, kT) in enumerate(kTs)
+	        for (j, P) in enumerate(Ps)
+	            n_diff[j, i] = n(rms_mof, kT, P) - n□(ϵ□, kT, P)
+	#             z[j, i] = ∂n_∂kT(rms_mof, kT, P) / n(rms_mof, kT, P) - ∂n□_∂kT(ϵ□, kT, P) / n□(ϵ□, kT, P)
+# 	            if P / kT > 1.0
+# 	                n_diff[j, i] = NaN
+# 	            end
+	        end
+	    end
+	    
+	    figure()
+	    pcolor(kTs, Ps, n_diff, cmap=plt.cm.PuOr, vmin=-0.15, vmax=0.15)
+	    text(kT_room, 0.9, L"$k_BT_0$", 
+	        ha="center", va="center", bbox=props□)
+	    text(3, 0.9, L"$\delta=$" * @sprintf("%d kJ/mol", rms_mof.δ) * "\n" *
+	        L"$\epsilon_\heartsuit=$" * @sprintf("%d kJ/mol", rms_mof.ϵ♡) * "\n" * 
+	        L"$\epsilon_\bigtriangleup=$" * @sprintf("%d kJ/mol", rms_mof.ϵ△), 
+	        ha="left", va="top")
+	    cbar = colorbar(label=L"$\langle n\rangle - \langle n \rangle_L$")
+	    axvline(x=kT_room, linestyle="--", color="0.5")
+	    xlabel(L"$k_BT$ [kJ/mol]")
+	    ylabel(L"$P$ [kJ/mol]")
+	    title(rms_mof_class)
+	    tight_layout()
+	    if occursin("detente", rms_mof_class)
+	        rms_mof_class = "detente"
+	    end
+	    if occursin("wheel-gas cooperation", rms_mof_class)
+	        rms_mof_class = "cooperation"
+	    end
+	    savefig("n_minus_nL_" * rms_mof_class * ".pdf", format="pdf")
+	end
+	gcf()
+end
+
+# ╔═╡ 02f71150-fcf7-11ea-3d9a-b7622d19234a
+md"
+# wheel stuff
+
+first, pressure-dependence.
+"
+
+# ╔═╡ 08f82c2c-fcf7-11ea-39e5-d585c94d6932
+begin
+	material_gas_loves_♡ =  Material(δ, -10.0, -5.0) # competition
+	material_gas_agnostic = Material(δ, -7.0, -7.0) # peace
+	material_gas_loves_Δ =  Material(δ, -5.0, -10.0) # cooperation
+	
+	println("material where gas loves Δ: ", material_gas_loves_Δ)
+	println("material where gas loves ♡: ", material_gas_loves_♡)
+		
+	βP = range(0.0, stop=1.0, length=300)
+	
+	# P = βP * kT
+	w_gas_loves_Δ = [w(material_gas_loves_Δ, kT_room, βP_i * kT_room) for βP_i in βP]
+	w_gas_loves_♡ = [w(material_gas_loves_♡, kT_room, βP_i * kT_room) for βP_i in βP]
+	w_gas_agnostic = [w(material_gas_agnostic, kT_room, βP_i * kT_room) for βP_i in βP]
+	
+	figure(figsize=(6.6, 4.8))
+	plot(βP, w_gas_loves_♡, lw=4, color=colorz["competition"],
+	    label=L"competition ($\epsilon_\heartsuit <\epsilon_\bigtriangleup$)",
+	    #label=L"$\beta \epsilon_\heartsuit=$" * @sprintf("%d", material_gas_loves_♡.ϵ♡) * L"$<\beta \epsilon_\bigtriangleup=$" * @sprintf("%d", material_gas_loves_♡.ϵΔ),
+	    clip_on=false
+	)
+	plot(βP, w_gas_agnostic, lw=4, color=colorz["peace"],
+	    label=L"peace ($\epsilon_\heartsuit =\epsilon_\bigtriangleup$)",
+	    #label=L"$\beta \epsilon_\heartsuit=$" * @sprintf("%d", material_gas_loves_♡.ϵ♡) * L"$<\beta \epsilon_\bigtriangleup=$" * @sprintf("%d", material_gas_loves_♡.ϵΔ),
+	    clip_on=false
+	)
+	
+	plot(βP, w_gas_loves_Δ, lw=4, color=colorz["cooperation"],
+	    label=L"cooperation ($\epsilon_\bigtriangleup <\epsilon_\heartsuit$)",
+	    #label=L"$\beta \epsilon_\bigtriangleup=$" * @sprintf("%d", material_gas_loves_Δ.ϵΔ) * L"$<\beta \epsilon_\heartsuit=$" * @sprintf("%d", material_gas_loves_Δ.ϵ♡),
+	    clip_on=false
+	)
+	
+	# text(0.6, .5, L"$\beta \delta=$" * @sprintf("%d", material_gas_loves_♡.δ))
+	
+	# limiting cases
+	w_no_gas = exp(-δ / kT_room) / (1 + exp(-δ / kT_room))
+	axhline(y=w_no_gas, color="k", linestyle="--")
+	text(1.025, w_no_gas, 
+		L"$\frac{e^{-\beta \delta}}{1+e^{-\beta \delta}}$", 
+		va="center", ha="left")
+	
+	function limiting_wn1(material::Material, kT::Float64)
+		f1 = exp(-(material.ϵ♡+material.δ) / kT)
+		f2 = exp(-material.ϵ△ / kT)
+		return f1 / (f1 + f2)
+	end
+	w_n1_competition = limiting_wn1(material_gas_loves_♡, kT_room)
+	w_n1_cooperation = limiting_wn1(material_gas_loves_Δ, kT_room)
+	axhline(y=w_n1_competition, color=colorz["competition"], linestyle="--")
+	axhline(y=w_n1_cooperation, color=colorz["cooperation"], linestyle="--")
+	text(1.025, w_n1_competition, 
+		L"$\frac{e^{-\beta (\epsilon_\heartsuit+\delta)}}{e^{-\beta\epsilon_\bigtriangleup}+e^{-\beta (\epsilon_\heartsuit+\delta)}}$", 
+		va="center", ha="left", color=colorz["competition"])
+	text(1.025, w_n1_cooperation, 
+		L"$\frac{e^{-\beta (\epsilon_\heartsuit+\delta)}}{e^{-\beta\epsilon_\bigtriangleup}+e^{-\beta (\epsilon_\heartsuit+\delta)}}$", 
+		va="center", ha="left", color=colorz["cooperation"])
+	
+	xlabel(L"$\beta P$")
+	ylabel(L"\langle w \rangle")
+	text(0.01, 0.99, L"$\delta=$" * @sprintf("%d kJ/mol", δ) * "\n" * 
+		L"$k_BT=$" * @sprintf("%d", kT_room),
+	        ha="left", va="top")
+	ylim([-0.01, 1.01])
+	xlim([-0.01, 1.01])
+	text(-0.17, 0.0, L"$\heartsuit$", va="center")
+	text(-0.17, 1.0, L"$\bigtriangleup$", va="center")
+	legend()
+	tight_layout()
+	savefig("expected_w.pdf", format="pdf")
+	gcf()
+end
+
+# ╔═╡ 8858089c-fcfa-11ea-3193-a9941642d6d5
+md"
+non-monotonic $T$-dependence of $\langle w \rangle$
+"
+
+# ╔═╡ 94aec894-fcfa-11ea-3262-3f4b706d4945
+begin
+	material = Material(δ, -7.0, -3.0) # competition, gas wins
+	@assert (material.δ + material.ϵ♡) < material.ϵ△
+	
+	println(material)
+	kTz = range(0.1, stop=10.0, length=500) # kJ/mol
+	
+	P = vcat([0.0], 10. .^ (-5:2))
+	
+	w_empty = exp.(-material.δ ./ kTz) ./ (1.0 .+ exp.(-material.δ ./ kTz))
+	w_full = exp.(-(material.ϵ♡ + material.δ) ./ kTz) ./ (exp.(-material.ϵ△ ./ kTz) .+ exp.(-(material.ϵ♡ + material.δ) ./ kTz))
+	
+	cnorm = PyPlot.matplotlib.colors.LogNorm(vmin=minimum(P[2:end]), vmax=maximum(P))
+	P_to_color = PyPlot.matplotlib.cm.ScalarMappable(norm=cnorm, cmap=PyPlot.matplotlib.cm.get_cmap("viridis"))
+	P_to_color.set_array([])
+	
+	figure()
+	
+	plot(kTz, w_empty, color=P_to_color.to_rgba(minimum(P[2:end])), 
+		label=L"fixed $n=0$", lw=4, clip_on=false)
+	plot(kTz, w_full, color=P_to_color.to_rgba(maximum(P)), 
+		label=L"fixed $n=1$", lw=4, clip_on=false)
+	
+	xlabel(L"$k_BT$ [kJ/mol]")
+	ylabel(L"$\langle w \rangle$")
+	
+	for P_i in P
+	    ws = [w(material, kT_i, P_i) for kT_i in kTz]
+	    plot(kTz, ws, color=P_to_color.to_rgba(P_i), clip_on=false)
+	end
+	axhline(y=0.5, color="k", linestyle="--")
+	colorbar(P_to_color, label=L"$P$ [kJ/mol]", extend="both")
+	ylim([-0.01, 1.01])
+	xlim([-0.01, maximum(kTz)+0.02])
+	legend()
+	text(-2, 0.0, L"$\heartsuit$", va="center")
+	text(-2, 1.0, L"$\bigtriangleup$", va="center")
+	text(6.5, 0.225, L"$\delta=$" * @sprintf("%d kJ/mol", material.δ) * "\n" *
+	    L"$\epsilon_\heartsuit=$" * @sprintf("%d kJ/mol", material.ϵ♡) * "\n" * 
+	    L"$\epsilon_\bigtriangleup=$" * @sprintf("%d kJ/mol", material.ϵ△), 
+	    ha="left", va="top")
+	tight_layout()
+	savefig("expected_w_T_dependence.pdf", format="pdf")
+	gcf()
+end
+
+# ╔═╡ e02f8cd0-fd08-11ea-3179-01e2da33d350
+begin
+	kT0 = 0.01
+	pΔ_n0 = exp(-material.δ / kT0) / (1 + exp(-material.δ / kT0))
+	K♡βP = exp(-material.ϵ♡ / kT0) # * P / kT0
+	# KβP = K(material, kT) * P / kT
+end
+
+# ╔═╡ ae4901ae-fcfb-11ea-2bbd-cbdad35334f6
+md"
+$\langle w \rangle (P, T)$
+"
+
+# ╔═╡ d07b1a82-fcfd-11ea-0213-692a0eb81f85
+begin
+	# kTs, Ps from gas adsorption viz above.	
+	w_of_PT = zeros(nb_pts, nb_pts)
+
+	for (rms_mof_class, rms_mof) in rms_mofs
+		# determine cognate Langmuir material at reference temperature
+		for (i, kT) in enumerate(kTs)
+			for (j, P) in enumerate(Ps)
+				if P / kT > 1
+					w_of_PT[j, i] = NaN
+				else
+					w_of_PT[j, i] = w(rms_mof, kT, P)
+				end
+			end
+		end
+		
+		figure()
+	    pcolor(kTs, Ps, w_of_PT, cmap=plt.cm.BrBG, vmin=0.0, vmax=1.0)
+	    text(3, 0.9, L"$\delta=$" * @sprintf("%d kJ/mol", rms_mof.δ) * "\n" *
+	        L"$\epsilon_\heartsuit=$" * @sprintf("%d kJ/mol", rms_mof.ϵ♡) * "\n" * 
+	        L"$\epsilon_\bigtriangleup=$" * @sprintf("%d kJ/mol", rms_mof.ϵ△), 
+	        ha="left", va="top")
+	    cbar = colorbar(label=L"$\langle w\rangle$")
+	    xlabel(L"$k_BT$ [kJ/mol]")
+	    ylabel(L"$P$ [kJ/mol]")
+	    title(rms_mof_class)
+	    tight_layout()
+	    if occursin("detente", rms_mof_class)
+	        rms_mof_class = "detente"
+	    end
+	    if occursin("wheel-gas cooperation", rms_mof_class)
+	        rms_mof_class = "cooperation"
+	    end
+	    savefig("w_" * rms_mof_class * ".pdf", format="pdf")
+	end
+	gcf()
+end
+
+# ╔═╡ a59d20e4-fd02-11ea-02b9-e9ca9635184d
+w(rms_mofs["wheel-gas competition (detente)"], 0.1, 0.0)
+
+# ╔═╡ 422343be-fcff-11ea-2cee-ad0603a5a57d
+# begin
+# 	# pcolor test
+# 	x = range(0.0, 1.0, length=20)
+# 	y = range(0.0, 1.0, length=20)
+# 	z = zeros(20, 20)
+	
+# 	for i = 1:20
+# 		for j = 1:20
+# 			z[j, i] = y[j]
+# 		end
+# 	end
+	
+# 	figure()
+# 	pcolor(x, y, z)
+# 	colorbar()
+# 	gcf()
+# end
 
 # ╔═╡ Cell order:
 # ╠═86b87b78-fc7f-11ea-2e71-13a4099f7ca2
@@ -602,3 +853,13 @@ end
 # ╠═8febf99a-fc93-11ea-2437-434f7dd1b923
 # ╟─f3b32dda-fc94-11ea-021b-e1632c4cce6a
 # ╠═102bd92a-fc96-11ea-3301-d5ccbd0b3613
+# ╠═4fb2bbae-fcf5-11ea-0869-1b6865b7249f
+# ╟─02f71150-fcf7-11ea-3d9a-b7622d19234a
+# ╠═08f82c2c-fcf7-11ea-39e5-d585c94d6932
+# ╟─8858089c-fcfa-11ea-3193-a9941642d6d5
+# ╠═94aec894-fcfa-11ea-3262-3f4b706d4945
+# ╠═e02f8cd0-fd08-11ea-3179-01e2da33d350
+# ╟─ae4901ae-fcfb-11ea-2bbd-cbdad35334f6
+# ╠═d07b1a82-fcfd-11ea-0213-692a0eb81f85
+# ╠═a59d20e4-fd02-11ea-02b9-e9ca9635184d
+# ╠═422343be-fcff-11ea-2cee-ad0603a5a57d
