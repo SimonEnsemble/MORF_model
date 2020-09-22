@@ -171,13 +171,13 @@ md"
 
 # ╔═╡ 73c59f08-fc89-11ea-153a-7987634c790f
 begin
-	δ = 1.0
+	δ_ms = 1.0
 	ϵ♡s = range(-5.0, 0.0, length=10)
 	ϵΔs = range(-5.0, 0.0, length=10)
 	
 	fig, ax = subplots(figsize=(4, 4))
 	plot(ϵ♡s, ϵΔs, color=colorz["peace"], lw=3, label="peace")
-	plot(ϵ♡s, ϵ♡s .+ δ, color="k", linestyle="--")
+	plot(ϵ♡s, ϵ♡s .+ δ_ms, color="k", linestyle="--")
 	
 	xticks([])
 	yticks([])
@@ -195,8 +195,8 @@ begin
 	text(-2.5, -2.0, "wheel wins", ha="center", va="center", rotation=45.0, color="k")
 	text(-3.0, -1.5, "gas wins", ha="center", va="center", rotation=45.0, color="k")
 	
-	plot([-δ, -δ], [-0.15, 0.15], color="k", clip_on=false)
-	text(-δ, 0.4, L"$-\delta$", ha="center", va="center")
+	plot([-δ_ms, -δ_ms], [-0.15, 0.15], color="k", clip_on=false)
+	text(-δ_ms, 0.4, L"$-\delta$", ha="center", va="center")
 	text(0.0, 0.4, L"$0$", ha="center", va="center")
 	text(0.4, 0.0, L"$0$", ha="center", va="center")
 	text(0.0, -5.5, L"$\epsilon_\bigtriangleup$", ha="center", va="center", fontsize=18)
@@ -445,6 +445,101 @@ begin
 	test_□_stuff()
 end
 
+# ╔═╡ 20c6b734-fc8f-11ea-3244-55e8ff942305
+begin
+	δ = 3.0
+	kT = kT_room
+	nb_pts = 50
+	ϵ_range = range(-10.0, stop=0.0, length=nb_pts)
+	
+	ϵ□s = zeros(nb_pts, nb_pts)
+	∂K_∂T_diffs = zeros(nb_pts, nb_pts)
+	∂E_∂N_diffs = zeros(nb_pts, nb_pts)
+	for (i, ϵ♡) in enumerate(ϵ_range)
+	    for (j, ϵ△) in enumerate(ϵ_range)
+	        material = Material(δ, ϵ♡, ϵ△)
+	        
+	        # find epsilon that gives same K for Langmuir material
+	        ϵ□ = get_ϵ□(material, kT)
+	        K□ = exp(-ϵ□ / kT)
+	        @assert K□ ≈ K(material, kT)
+	        
+	        ϵ□s[j, i] = ϵ□
+	        ∂E_∂N_diffs[j, i] = ∂E_∂n(material, kT) - ∂E□_∂n□(ϵ□)
+	        ∂K_∂T_diffs[j, i] = (∂K_∂kT(material, kT) - ∂K□_∂kT(ϵ□, kT)) / K□
+			
+	        @assert ∂K_∂kT(material, kT) <= 0.0
+	        @assert ∂K□_∂kT(ϵ□, kT) <= 0.0
+	#         z[j, i] = ∂K_∂kT(material, kT) - ∂K□_∂kT(ϵ□, kT)
+	        # j, i... this is not a bug.
+	        #  try the following two to see:
+	        #    Z[j, i] = βϵ♡
+	        #    Z[j, i] = βϵ△
+	    end
+	end
+	
+	function decorate_fig(cbar_label::LaTeXString)
+	    gca().set_aspect("equal", "box")
+	
+	    cbar = colorbar(label=cbar_label)
+	    xlabel(L"$\epsilon_\heartsuit$ [kJ/mol]")
+	    ylabel(L"$\epsilon_\bigtriangleup$ [kJ/mol]")
+	    ylim(ymax=0.0)
+	    tight_layout()
+	end
+end
+
+# ╔═╡ 7f6dbbdc-fc91-11ea-1212-63b9919b72f5
+begin
+	figure()
+	pcolor(ϵ_range, ϵ_range, ϵ□s, vmax=0.0, cmap=plt.cm.turbo)
+	decorate_fig(L"$\epsilon_□$ [kJ/mol]")
+	text(-9.5, -1.1, 
+		L"$k_BT_0=$" * @sprintf("%.2f kJ/mol", kT) * "\n" * 
+		L"$\delta=$" * @sprintf("%.2f kJ/mol", δ), ha="left", va="center")
+	tight_layout()
+	savefig("epsilon_square.pdf", format="pdf")
+	gcf()
+end
+
+# ╔═╡ 392ad090-fc93-11ea-109b-5772e9d1ead3
+begin
+	props□ = Dict("boxstyle"=>"round", "facecolor"=>"white", "alpha"=>0.85)
+
+	# dK/dT
+	figure()
+	pcolor(ϵ_range, ϵ_range, ∂K_∂T_diffs, cmap=plt.cm.PiYG, 
+		vmax=maximum(abs.(∂K_∂T_diffs)), vmin=-maximum(abs.(∂K_∂T_diffs)))
+	plot(ϵ_range, ϵ_range .+ 2 * δ, linestyle="--", color="0.5")
+	plot(ϵ_range, ϵ_range, linestyle="--", color="0.5")
+	text(-5, -5, L"$\epsilon_\bigtriangleup=\epsilon_\heartsuit$", 
+		ha="center", va="center", rotation=45, bbox=props□)
+	text(-8, -8+2*δ, L"$\epsilon_\bigtriangleup=\epsilon_\heartsuit+2\delta$",
+		ha="center", va="center", rotation=45, bbox=props□)
+	text(-5, -9, L"$k_BT_0=$" * @sprintf("%.2f kJ/mol", kT) * "\n" * 
+		L"$\delta=$" * @sprintf("%.2f kJ/mol", δ), ha="left", va="center")
+	decorate_fig(L"$\frac{1}{K}\frac{d K}{d (k_BT)}|_{T_0}-\frac{1}{K_□}\frac{d K_□}{d (k_BT)}|_{T_0}$ [1/(kJ/mol)]")
+	tight_layout()
+	savefig("dK_dT.pdf", format="pdf")
+	gcf()
+end
+
+# ╔═╡ 8febf99a-fc93-11ea-2437-434f7dd1b923
+begin
+	figure()
+	pcolor(ϵ_range, ϵ_range, ∂E_∂N_diffs, cmap=plt.cm.bwr_r, 
+		vmax=maximum(abs.(∂E_∂N_diffs)), vmin=-maximum(abs.(∂E_∂N_diffs)))
+	plot(ϵ_range, ϵ_range .+ 2 * δ, linestyle="--", color="0.5")
+	plot(ϵ_range, ϵ_range, linestyle="--", color="0.5")
+	text(-5, -5, L"$\epsilon_\bigtriangleup=\epsilon_\heartsuit$", ha="center", va="center", rotation=45, bbox=props)
+	text(-8, -8+2*δ, L"$\epsilon_\bigtriangleup=\epsilon_\heartsuit+2\delta$", ha="center", va="center", rotation=45, bbox=props)
+	text(-5, -9, L"$k_BT_0=$" * @sprintf("%.2f kJ/mol", kT) * "\n" * L"$\delta=$" * @sprintf("%.2f kJ/mol", δ), ha="left", va="center")
+	decorate_fig(L"$\frac{\partial \langle E\rangle }{\partial \langle n \rangle}-\frac{\partial \langle E\rangle_L }{\partial \langle n \rangle_L}$ [kJ/mol]")
+	tight_layout()
+	savefig("dE_dNs.pdf", format="pdf")
+	gcf()
+end
+
 # ╔═╡ Cell order:
 # ╠═86b87b78-fc7f-11ea-2e71-13a4099f7ca2
 # ╠═d30e022c-fc7f-11ea-2b57-775cc0121f5e
@@ -470,3 +565,7 @@ end
 # ╠═5719a1d6-fc8d-11ea-000b-ddcb985f72f0
 # ╟─551fba04-fc8e-11ea-2058-2bda590970f8
 # ╠═4658aca4-fc8e-11ea-04b5-b78a558415a3
+# ╠═20c6b734-fc8f-11ea-3244-55e8ff942305
+# ╠═7f6dbbdc-fc91-11ea-1212-63b9919b72f5
+# ╠═392ad090-fc93-11ea-109b-5772e9d1ead3
+# ╠═8febf99a-fc93-11ea-2437-434f7dd1b923
