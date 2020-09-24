@@ -175,9 +175,10 @@ begin
 	ϵ♡s = range(-5.0, 0.0, length=10)
 	ϵΔs = range(-5.0, 0.0, length=10)
 	
-	fig, ax = subplots(figsize=(4, 4))
+	fig, ax = subplots(figsize=(4.25, 4.25))
 	plot(ϵ♡s, ϵΔs, color=colorz["peace"], lw=3, label="peace")
 	plot(ϵ♡s, ϵ♡s .+ δ_ms, color="k", linestyle="--")
+	plot(ϵ♡s, ϵ♡s .+ 2*δ_ms, color="k", linestyle="--")
 	
 	xticks([])
 	yticks([])
@@ -188,15 +189,18 @@ begin
 	ylim([-5.4, 0.1])
 	
 	props = Dict("boxstyle"=>"round", "facecolor"=>"white", "alpha"=>0.5)
-	text(-3.8, -0.75, "competition", ha="center", va="center", bbox=props)
+	text(-3.8, -0.35, "competition", ha="center", va="center", bbox=props)
 	text(-1.25, -3.8, "cooperation", ha="center", va="center", bbox=props)
 	text(-4, -4, "peace", ha="center", va="center", color="k", bbox=props, rotation=45)
 	
-	text(-2.5, -2.0, "wheel wins", ha="center", va="center", rotation=45.0, color="k")
-	text(-3.0, -1.5, "gas wins", ha="center", va="center", rotation=45.0, color="k")
-	
+	text(-2.5, -2.0, "wheel wins", ha="center", va="center", rotation=45.0, color="k", fontsize=12)
+	text(-3.0, -1.5, "gas wins", ha="center", va="center", rotation=45.0, color="k", fontsize=12)
+	text(-4.0, -1.5, "gas wins by far", ha="center", va="center", rotation=45.0, color="k", fontsize=12)
+
 	plot([-δ_ms, -δ_ms], [-0.15, 0.15], color="k", clip_on=false)
 	text(-δ_ms, 0.4, L"$-\delta$", ha="center", va="center")
+	plot([-2*δ_ms, -2*δ_ms], [-0.15, 0.15], color="k", clip_on=false)
+	text(-2*δ_ms, 0.4, L"$-2\delta$", ha="center", va="center")
 	text(0.0, 0.4, L"$0$", ha="center", va="center")
 	text(0.4, 0.0, L"$0$", ha="center", va="center")
 	text(0.0, -5.5, L"$\epsilon_\bigtriangleup$", ha="center", va="center", fontsize=18)
@@ -230,10 +234,10 @@ begin
 	xlim([0-ϵ, maximum(kp)+ϵ])
 	ϵ=1e-2
 	ylim([0-ϵ, 1+ϵ])
-	xlabel(L"$K\beta P$")
-	ylabel(L"$\langle n \rangle$")
+	xlabel(L"$K_□\beta P$")
+	ylabel(L"$\langle n \rangle_L$")
 	draw_axes()
-	text(6, 0.4, L"$\langle n \rangle=\dfrac{K\beta P}{1+K\beta P}$", fontsize=18, 
+	text(4, 0.4, L"$\langle n \rangle_L=\dfrac{K_□\beta P}{1+K_□\beta P}$", fontsize=18, 
 		bbox=Dict("boxstyle"=>"round", "facecolor"=>"wheat", "alpha"=>0.3))
 	vlines(1, 0, 0.5, color="0.7", linestyle="--")
 	hlines(0.5, 0, 1, color="0.7", linestyle="--")
@@ -482,7 +486,9 @@ begin
 			
 	        @assert ∂K_∂kT(material, kT) <= 0.0
 	        @assert ∂K□_∂kT(ϵ□, kT) <= 0.0
-	#         z[j, i] = ∂K_∂kT(material, kT) - ∂K□_∂kT(ϵ□, kT)
+			@assert ∂E_∂n(material, kT) <= 0.0
+			@assert ∂E□_∂n□(ϵ□) <= 0.0
+ 	#         z[j, i] = ∂K_∂kT(material, kT) - ∂K□_∂kT(ϵ□, kT)
 	        # j, i... this is not a bug.
 	        #  try the following two to see:
 	        #    Z[j, i] = βϵ♡
@@ -530,7 +536,7 @@ begin
 		ha="center", va="center", rotation=45, bbox=props□)
 	text(-5, -9, L"$k_BT_0=$" * @sprintf("%.2f kJ/mol", kT) * "\n" * 
 		L"$\delta=$" * @sprintf("%.2f kJ/mol", δ), ha="left", va="center")
-	decorate_fig(L"$\frac{1}{K}\frac{d K}{d (k_BT)}|_{T_0}-\frac{1}{K_□}\frac{d K_□}{d (k_BT)}|_{T_0}$ [1/(kJ/mol)]")
+	decorate_fig(L"$\frac{1}{K^\prime}\frac{d K^\prime}{d (k_BT)}|_{T_0}-\frac{1}{K_□}\frac{d K_□}{d (k_BT)}|_{T_0}$ [1/(kJ/mol)]")
 	tight_layout()
 	savefig("dK_dT.pdf", format="pdf")
 	gcf()
@@ -650,7 +656,7 @@ begin
 	w_gas_loves_♡ = [w(material_gas_loves_♡, kT_room, βP_i * kT_room) for βP_i in βP]
 	w_gas_agnostic = [w(material_gas_agnostic, kT_room, βP_i * kT_room) for βP_i in βP]
 	
-	figure(figsize=(6.6, 4.8))
+	figure()
 	plot(βP, w_gas_loves_♡, lw=4, color=colorz["competition"],
 	    label=L"competition ($\epsilon_\heartsuit <\epsilon_\bigtriangleup$)",
 	    #label=L"$\beta \epsilon_\heartsuit=$" * @sprintf("%d", material_gas_loves_♡.ϵ♡) * L"$<\beta \epsilon_\bigtriangleup=$" * @sprintf("%d", material_gas_loves_♡.ϵΔ),
@@ -673,9 +679,9 @@ begin
 	# limiting cases
 	w_no_gas = exp(-δ / kT_room) / (1 + exp(-δ / kT_room))
 	axhline(y=w_no_gas, color="k", linestyle="--")
-	text(1.025, w_no_gas, 
-		L"$\frac{e^{-\beta \delta}}{1+e^{-\beta \delta}}$", 
-		va="center", ha="left")
+# 	text(1.025, w_no_gas, 
+# 		L"$\frac{e^{-\beta \delta}}{1+e^{-\beta \delta}}$", 
+# 		va="center", ha="left")
 	
 	function limiting_wn1(material::Material, kT::Float64)
 		f1 = exp(-(material.ϵ♡+material.δ) / kT)
@@ -686,22 +692,22 @@ begin
 	w_n1_cooperation = limiting_wn1(material_gas_loves_Δ, kT_room)
 	axhline(y=w_n1_competition, color=colorz["competition"], linestyle="--")
 	axhline(y=w_n1_cooperation, color=colorz["cooperation"], linestyle="--")
-	text(1.025, w_n1_competition, 
-		L"$\frac{e^{-\beta (\epsilon_\heartsuit+\delta)}}{e^{-\beta\epsilon_\bigtriangleup}+e^{-\beta (\epsilon_\heartsuit+\delta)}}$", 
-		va="center", ha="left", color=colorz["competition"])
-	text(1.025, w_n1_cooperation, 
-		L"$\frac{e^{-\beta (\epsilon_\heartsuit+\delta)}}{e^{-\beta\epsilon_\bigtriangleup}+e^{-\beta (\epsilon_\heartsuit+\delta)}}$", 
-		va="center", ha="left", color=colorz["cooperation"])
+# 	text(1.025, w_n1_competition, 
+# 		L"$\frac{e^{-\beta (\epsilon_\heartsuit+\delta)}}{e^{-\beta\epsilon_\bigtriangleup}+e^{-\beta (\epsilon_\heartsuit+\delta)}}$", 
+# 		va="center", ha="left", color=colorz["competition"])
+# 	text(1.025, w_n1_cooperation, 
+# 		L"$\frac{e^{-\beta (\epsilon_\heartsuit+\delta)}}{e^{-\beta\epsilon_\bigtriangleup}+e^{-\beta (\epsilon_\heartsuit+\delta)}}$", 
+# 		va="center", ha="left", color=colorz["cooperation"])
 	
 	xlabel(L"$\beta P$")
 	ylabel(L"\langle w \rangle")
 	text(0.01, 0.99, L"$\delta=$" * @sprintf("%d kJ/mol", δ) * "\n" * 
-		L"$k_BT=$" * @sprintf("%d", kT_room),
+		L"$k_BT=$" * @sprintf("%d kJ/mol", kT_room),
 	        ha="left", va="top")
 	ylim([-0.01, 1.01])
 	xlim([-0.01, 1.01])
-	text(-0.17, 0.0, L"$\heartsuit$", va="center")
-	text(-0.17, 1.0, L"$\bigtriangleup$", va="center")
+	text(-0.15, 0.0, L"$\heartsuit$", va="center")
+	text(-0.15, 1.0, L"$\bigtriangleup$", va="center")
 	legend()
 	tight_layout()
 	savefig("expected_w.pdf", format="pdf")
