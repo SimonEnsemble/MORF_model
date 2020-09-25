@@ -570,10 +570,10 @@ begin
 	    # COMPETITION: gas loves ♡, so does wheel. 
 	    #              ϵ♡ < ϵ△
 	    #  gas wins: ϵ♡ + δ < ϵ△
-	    "competition (gas wins)" => Material(δ, -δ*3, -δ),
+	    "competition (gas wins)" => Material(3.0, -10.0, -5.0),
 	#     "competition (gas wins by far)" => Material(δ, -15.0, -5.0),
-	#     #  whl wins: ϵ♡ + δ > ϵ△
-	#     "competition (whl wins)" => Material(δ, -δ*0.5, -δ*0.25),
+		# whl wins: ϵ♡ + δ > ϵ△
+	    "competition (wheel wins)" => Material(3.0, -7.0, -5.0),
 	    #  detent: ϵ♡ + δ = ϵ△
 	    "wheel-gas competition (detente)" => Material(5.0, -8.0, -3.0),
 	    ##
@@ -582,11 +582,18 @@ begin
 	    "wheel-gas cooperation"            => Material(1.0, -1.0, -5.0)
 	)
 	
-	# @assert rms_mofs["competition (gas wins)"].ϵ△ > rms_mofs["competition (gas wins)"].ϵ♡ + rms_mofs["competition (gas wins)"].δ
+	@assert rms_mofs["competition (gas wins)"].ϵ△ > rms_mofs["competition (gas wins)"].ϵ♡ + rms_mofs["competition (gas wins)"].δ
 	# @assert rms_mofs["competition (whl wins)"].ϵ△ < rms_mofs["competition (whl wins)"].ϵ♡ + rms_mofs["competition (whl wins)"].δ
 	# @assert rms_mofs["competition (whl wins)"].ϵ△ > rms_mofs["competition (whl wins)"].ϵ♡
 	@assert rms_mofs["wheel-gas cooperation"].ϵ△ < rms_mofs["wheel-gas cooperation"].ϵ♡
 	@assert rms_mofs["wheel-gas competition (detente)"].ϵ△ ≈ rms_mofs["wheel-gas competition (detente)"].ϵ♡ + rms_mofs["wheel-gas competition (detente)"].δ
+	
+	rmsmof_class_to_savename = Dict(
+		"competition (gas wins)" => "competition_gas_wins",
+	    "competition (wheel wins)" => "competition_wheel_wins",
+	    "wheel-gas competition (detente)" => "competition_detente",
+	    "wheel-gas cooperation"            => "cooperation"
+		)
 end
 
 # ╔═╡ 4fb2bbae-fcf5-11ea-0869-1b6865b7249f
@@ -595,11 +602,11 @@ begin
 	Ps = range(0.0, 1.0, length=nb_pts)
 	n_diff = zeros(nb_pts, nb_pts)
 	
-	for (rms_mof_class, rms_mof) in rms_mofs
+	for (rmsmof_class, rms_mof) in rms_mofs
 		# determine cognate Langmuir material at reference temperature
 	    ϵ□ = get_ϵ□(rms_mof, kT_room)
-	    for (i, kT) in enumerate(kTs)
-	        for (j, P) in enumerate(Ps)
+	    for (i, P) in enumerate(Ps)
+			for (j, kT) in enumerate(kTs)
 	            n_diff[j, i] = n(rms_mof, kT, P) - n□(ϵ□, kT, P)
 	#             z[j, i] = ∂n_∂kT(rms_mof, kT, P) / n(rms_mof, kT, P) - ∂n□_∂kT(ϵ□, kT, P) / n□(ϵ□, kT, P)
 # 	            if P / kT > 1.0
@@ -609,26 +616,21 @@ begin
 	    end
 	    
 	    figure()
-	    pcolor(kTs, Ps, n_diff, cmap=plt.cm.PuOr, vmin=-0.15, vmax=0.15)
-	    text(kT_room, 0.9, L"$k_BT_0$", 
+	    pcolor(Ps, kTs, n_diff, cmap=plt.cm.PuOr, vmin=-0.15, vmax=0.15)
+	    text(0.9, kT_room, L"$k_BT_0$", 
 	        ha="center", va="center", bbox=props□)
-	    text(3, 0.9, L"$\delta=$" * @sprintf("%d kJ/mol", rms_mof.δ) * "\n" *
+	    text(0.65, 4.75, L"$\delta=$" * @sprintf("%d kJ/mol", rms_mof.δ) * "\n" *
 	        L"$\epsilon_\heartsuit=$" * @sprintf("%d kJ/mol", rms_mof.ϵ♡) * "\n" * 
 	        L"$\epsilon_\bigtriangleup=$" * @sprintf("%d kJ/mol", rms_mof.ϵ△), 
 	        ha="left", va="top")
 	    cbar = colorbar(label=L"$\langle n\rangle - \langle n \rangle_L$")
-	    axvline(x=kT_room, linestyle="--", color="0.5")
-	    xlabel(L"$k_BT$ [kJ/mol]")
-	    ylabel(L"$P$ [kJ/mol]")
-	    title(rms_mof_class)
+	    axhline(y=kT_room, linestyle="--", color="0.5")
+		xlabel(L"$P$ [kJ/mol]")
+	    ylabel(L"$k_BT$ [kJ/mol]")
+	    title(rmsmof_class)
 	    tight_layout()
-	    if occursin("detente", rms_mof_class)
-	        rms_mof_class = "detente"
-	    end
-	    if occursin("wheel-gas cooperation", rms_mof_class)
-	        rms_mof_class = "cooperation"
-	    end
-	    savefig("n_minus_nL_" * rms_mof_class * ".pdf", format="pdf")
+	    savefig("n_minus_nL_" * rmsmof_class_to_savename[rmsmof_class] * ".pdf", 
+			format="pdf")
 	end
 	gcf()
 end
@@ -784,38 +786,60 @@ begin
 	# kTs, Ps from gas adsorption viz above.	
 	w_of_PT = zeros(nb_pts, nb_pts)
 
-	for (rms_mof_class, rms_mof) in rms_mofs
+	for (rmsmof_class, rms_mof) in rms_mofs
 		# determine cognate Langmuir material at reference temperature
-		for (i, kT) in enumerate(kTs)
-			for (j, P) in enumerate(Ps)
+		for (i, P) in enumerate(Ps)
+			for (j, kT) in enumerate(kTs)
 				w_of_PT[j, i] = w(rms_mof, kT, P)
 			end
 		end
 		
 		figure()
-	    pcolor(kTs, Ps, w_of_PT, cmap=plt.cm.BrBG, vmin=0.0, vmax=1.0)
-	    text(3, 0.9, L"$\delta=$" * @sprintf("%d kJ/mol", rms_mof.δ) * "\n" *
+	    pcolor(Ps, kTs, w_of_PT, cmap=plt.cm.BrBG, vmin=0.0, vmax=1.0)
+	    text(0.65, 4.75, L"$\delta=$" * @sprintf("%d kJ/mol", rms_mof.δ) * "\n" *
 	        L"$\epsilon_\heartsuit=$" * @sprintf("%d kJ/mol", rms_mof.ϵ♡) * "\n" * 
 	        L"$\epsilon_\bigtriangleup=$" * @sprintf("%d kJ/mol", rms_mof.ϵ△), 
 	        ha="left", va="top")
 	    cbar = colorbar(label=L"$\langle w\rangle$")
-	    xlabel(L"$k_BT$ [kJ/mol]")
-	    ylabel(L"$P$ [kJ/mol]")
-	    title(rms_mof_class)
+		xlabel(L"$P$ [kJ/mol]")
+	    ylabel(L"$k_BT$ [kJ/mol]")
+	    title(rmsmof_class)
 	    tight_layout()
-	    if occursin("detente", rms_mof_class)
-	        rms_mof_class = "detente"
-	    end
-	    if occursin("wheel-gas cooperation", rms_mof_class)
-	        rms_mof_class = "cooperation"
-	    end
-	    savefig("w_" * rms_mof_class * ".pdf", format="pdf")
+	    savefig("w_" * rmsmof_class_to_savename[rmsmof_class] * ".pdf", 
+			format="pdf")
 	end
 	gcf()
 end
 
-# ╔═╡ a59d20e4-fd02-11ea-02b9-e9ca9635184d
-w(rms_mofs["wheel-gas competition (detente)"], 0.1, 0.0)
+# ╔═╡ 899795d6-febe-11ea-13f3-eb1d5b83a42e
+begin
+	# kTs, Ps from gas adsorption viz above.	
+	n_of_PT = zeros(nb_pts, nb_pts)
+
+	for (rmsmof_class, rms_mof) in rms_mofs
+		# determine cognate Langmuir material at reference temperature
+		for (i, P) in enumerate(Ps)
+			for (j, kT) in enumerate(kTs)
+				n_of_PT[j, i] = n(rms_mof, kT, P)
+			end
+		end
+		
+		figure()
+	    pcolor(Ps, kTs, n_of_PT, cmap=plt.cm.Greens, vmin=0.0, vmax=1.0)
+	    text(0.65, 4.75, L"$\delta=$" * @sprintf("%d kJ/mol", rms_mof.δ) * "\n" *
+	        L"$\epsilon_\heartsuit=$" * @sprintf("%d kJ/mol", rms_mof.ϵ♡) * "\n" * 
+	        L"$\epsilon_\bigtriangleup=$" * @sprintf("%d kJ/mol", rms_mof.ϵ△), 
+	        ha="left", va="top")
+	    cbar = colorbar(label=L"$\langle n\rangle$")
+		xlabel(L"$P$ [kJ/mol]")
+	    ylabel(L"$k_BT$ [kJ/mol]")
+	    title(rmsmof_class)
+	    tight_layout()
+	    savefig("n_" * rmsmof_class_to_savename[rmsmof_class] * ".pdf", 
+			format="pdf")
+	end
+	gcf()
+end
 
 # ╔═╡ 422343be-fcff-11ea-2cee-ad0603a5a57d
 # begin
@@ -878,6 +902,6 @@ w(rms_mofs["wheel-gas competition (detente)"], 0.1, 0.0)
 # ╠═e02f8cd0-fd08-11ea-3179-01e2da33d350
 # ╟─ae4901ae-fcfb-11ea-2bbd-cbdad35334f6
 # ╠═d07b1a82-fcfd-11ea-0213-692a0eb81f85
-# ╠═a59d20e4-fd02-11ea-02b9-e9ca9635184d
+# ╠═899795d6-febe-11ea-13f3-eb1d5b83a42e
 # ╠═422343be-fcff-11ea-2cee-ad0603a5a57d
 # ╠═6fa7189e-fd16-11ea-01b0-dbfe1768fcb9
