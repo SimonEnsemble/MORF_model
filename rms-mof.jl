@@ -570,10 +570,10 @@ begin
 	    # COMPETITION: gas loves ♡, so does wheel. 
 	    #              ϵ♡ < ϵ△
 	    #  gas wins: ϵ♡ + δ < ϵ△
-	    "competition (gas wins)" => Material(3.0, -10.0, -5.0),
+	    "wheel-gas competition (gas wins)" => Material(3.0, -10.0, -5.0),
 	#     "competition (gas wins by far)" => Material(δ, -15.0, -5.0),
 		# whl wins: ϵ♡ + δ > ϵ△
-	    "competition (wheel wins)" => Material(3.0, -7.0, -5.0),
+	    "wheel-gas competition (wheel wins)" => Material(3.0, -7.0, -5.0),
 	    #  detent: ϵ♡ + δ = ϵ△
 	    "wheel-gas competition (detente)" => Material(5.0, -8.0, -3.0),
 	    ##
@@ -582,15 +582,15 @@ begin
 	    "wheel-gas cooperation"            => Material(1.0, -1.0, -5.0)
 	)
 	
-	@assert rms_mofs["competition (gas wins)"].ϵ△ > rms_mofs["competition (gas wins)"].ϵ♡ + rms_mofs["competition (gas wins)"].δ
+	@assert rms_mofs["wheel-gas competition (gas wins)"].ϵ△ > rms_mofs["wheel-gas competition (gas wins)"].ϵ♡ + rms_mofs["wheel-gas competition (gas wins)"].δ
 	# @assert rms_mofs["competition (whl wins)"].ϵ△ < rms_mofs["competition (whl wins)"].ϵ♡ + rms_mofs["competition (whl wins)"].δ
 	# @assert rms_mofs["competition (whl wins)"].ϵ△ > rms_mofs["competition (whl wins)"].ϵ♡
 	@assert rms_mofs["wheel-gas cooperation"].ϵ△ < rms_mofs["wheel-gas cooperation"].ϵ♡
 	@assert rms_mofs["wheel-gas competition (detente)"].ϵ△ ≈ rms_mofs["wheel-gas competition (detente)"].ϵ♡ + rms_mofs["wheel-gas competition (detente)"].δ
 	
 	rmsmof_class_to_savename = Dict(
-		"competition (gas wins)" => "competition_gas_wins",
-	    "competition (wheel wins)" => "competition_wheel_wins",
+		"wheel-gas competition (gas wins)" => "competition_gas_wins",
+	    "wheel-gas competition (wheel wins)" => "competition_wheel_wins",
 	    "wheel-gas competition (detente)" => "competition_detente",
 	    "wheel-gas cooperation"            => "cooperation"
 		)
