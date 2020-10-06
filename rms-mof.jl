@@ -42,7 +42,7 @@ end
 # ╔═╡ ed4675d6-fc7f-11ea-0afa-3de8c3953620
 begin
 	# θ = ϵ♡ + δ - ϵ△
-	βθs = range(-6.5, 6.5, length=100)
+	βθs = range(-6.65, 6.65, length=100)
 	
 	ht = 0.8          # height
 	wd = βθs[end] * 2 # width
@@ -536,7 +536,7 @@ begin
 		ha="center", va="center", rotation=45, bbox=props□)
 	text(-5, -9, L"$k_BT_0=$" * @sprintf("%.2f kJ/mol", kT) * "\n" * 
 		L"$\delta=$" * @sprintf("%.2f kJ/mol", δ), ha="left", va="center")
-	decorate_fig(L"$\frac{1}{K^\prime}\frac{d K^\prime}{d (k_BT)}|_{T_0}-\frac{1}{K_□}\frac{d K_□}{d (k_BT)}|_{T_0}$ [1/(kJ/mol)]")
+	decorate_fig(L"$\frac{1}{K^\prime}\left[\frac{d K^\prime}{d (k_BT)}-\frac{d K_□}{d (k_BT)}\right]$ [1/(kJ/mol)]")
 	tight_layout()
 	savefig("dK_dT.pdf", format="pdf")
 	gcf()
