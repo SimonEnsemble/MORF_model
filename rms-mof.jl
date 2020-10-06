@@ -704,7 +704,7 @@ begin
 	xlabel(L"$\beta P$")
 	ylabel(L"\langle w \rangle")
 	text(0.01, 0.99, L"$\delta=$" * @sprintf("%d kJ/mol", δ) * "\n" * 
-		L"$k_BT=$" * @sprintf("%d kJ/mol", kT_room),
+		L"$k_BT=$" * @sprintf("%0.2f kJ/mol", kT_room),
 	        ha="left", va="top")
 	ylim([-0.01, 1.01])
 	xlim([-0.01, 1.01])
