@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.11.14
+# v0.12.4
 
 using Markdown
 using InteractiveUtils
@@ -79,7 +79,7 @@ begin
 	###
 	plot(βθs, S.(w_n1.(βθs)), zorder=2, color="0.5", lw=3, label=L"fixed $n=1$")
 	ylabel(L"wheel entropy, $S_w/k_B$")
-	xlabel(L"$\beta(\epsilon_\heartsuit+\delta -\epsilon_\bigtriangleup)$")
+	xlabel(L"$\beta(\epsilon_⭐+\delta -\epsilon_\bigtriangleup)$")
 	legend(loc="upper left")
 	
 	###
@@ -159,7 +159,7 @@ begin
 	text(βδ, -0.05, L"$\beta\delta$", ha="center")
 	text(-βδ, -0.05, L"$-\beta\delta$", ha="center")
 	
-	savefig("wheel_entropy.pdf", format="pdf", bbox_inches="tight")
+	savefig("fig6.pdf", format="pdf", bbox_inches="tight")
 	
 	gcf()
 end
@@ -204,7 +204,7 @@ begin
 	text(0.0, 0.4, L"$0$", ha="center", va="center")
 	text(0.4, 0.0, L"$0$", ha="center", va="center")
 	text(0.0, -5.5, L"$\epsilon_\bigtriangleup$", ha="center", va="center", fontsize=18)
-	text(-5.5, 0.0, L"$\epsilon_\heartsuit$", ha="center", va="center", fontsize=18)
+	text(-5.5, 0.0, L"$\epsilon_⭐$", ha="center", va="center", fontsize=18)
 	ax.annotate("", xy=(-5.2, 0.0), xytext=(0.2, 0.0),
 	            arrowprops=Dict("facecolor"=>"k", "lw"=>1))
 	ax.annotate("", xy=(0.0, -5.2), xytext=(0.0, 0.2),
@@ -213,7 +213,7 @@ begin
 	ax.set_aspect("equal", adjustable="box")
 	tight_layout()
 	
-	savefig("mat_space.pdf", format="pdf")
+	savefig("fig3a.pdf", format="pdf")
 	
 	gcf()
 end
@@ -500,7 +500,7 @@ begin
 	    gca().set_aspect("equal", "box")
 	
 	    cbar = colorbar(label=cbar_label)
-	    xlabel(L"$\epsilon_\heartsuit$ [kJ/mol]")
+	    xlabel(L"$\epsilon_⭐$ [kJ/mol]")
 	    ylabel(L"$\epsilon_\bigtriangleup$ [kJ/mol]")
 	    ylim(ymax=0.0)
 	    tight_layout()
@@ -516,7 +516,7 @@ begin
 		L"$k_BT_0=$" * @sprintf("%.2f kJ/mol", kT) * "\n" * 
 		L"$\delta=$" * @sprintf("%.2f kJ/mol", δ), ha="left", va="center")
 	tight_layout()
-	savefig("epsilon_square.pdf", format="pdf")
+	savefig("fig7.pdf", format="pdf")
 	gcf()
 end
 
@@ -530,15 +530,15 @@ begin
 		vmax=maximum(abs.(∂K_∂T_diffs)), vmin=-maximum(abs.(∂K_∂T_diffs)))
 	plot(ϵ_range, ϵ_range .+ 2 * δ, linestyle="--", color="0.5")
 	plot(ϵ_range, ϵ_range, linestyle="--", color="0.5")
-	text(-5, -5, L"$\epsilon_\bigtriangleup=\epsilon_\heartsuit$", 
+	text(-5, -5, L"$\epsilon_\bigtriangleup=\epsilon_⭐$", 
 		ha="center", va="center", rotation=45, bbox=props□)
-	text(-8, -8+2*δ, L"$\epsilon_\bigtriangleup=\epsilon_\heartsuit+2\delta$",
+	text(-8, -8+2*δ, L"$\epsilon_\bigtriangleup=\epsilon_⭐+2\delta$",
 		ha="center", va="center", rotation=45, bbox=props□)
 	text(-5, -9, L"$k_BT_0=$" * @sprintf("%.2f kJ/mol", kT) * "\n" * 
 		L"$\delta=$" * @sprintf("%.2f kJ/mol", δ), ha="left", va="center")
 	decorate_fig(L"$\frac{1}{K^\prime}\left[\frac{d K^\prime}{d (k_BT)}-\frac{d K_□}{d (k_BT)}\right]$ [1/(kJ/mol)]")
 	tight_layout()
-	savefig("dK_dT.pdf", format="pdf")
+	savefig("fig8a.pdf", format="pdf")
 	gcf()
 end
 
@@ -549,12 +549,12 @@ begin
 		vmax=maximum(abs.(∂E_∂N_diffs)), vmin=-maximum(abs.(∂E_∂N_diffs)))
 	plot(ϵ_range, ϵ_range .+ 2 * δ, linestyle="--", color="0.5")
 	plot(ϵ_range, ϵ_range, linestyle="--", color="0.5")
-	text(-5, -5, L"$\epsilon_\bigtriangleup=\epsilon_\heartsuit$", ha="center", va="center", rotation=45, bbox=props□)
-	text(-8, -8+2*δ, L"$\epsilon_\bigtriangleup=\epsilon_\heartsuit+2\delta$", ha="center", va="center", rotation=45, bbox=props□)
+	text(-5, -5, L"$\epsilon_\bigtriangleup=\epsilon_⭐$", ha="center", va="center", rotation=45, bbox=props□)
+	text(-8, -8+2*δ, L"$\epsilon_\bigtriangleup=\epsilon_⭐+2\delta$", ha="center", va="center", rotation=45, bbox=props□)
 	text(-5, -9, L"$k_BT_0=$" * @sprintf("%.2f kJ/mol", kT) * "\n" * L"$\delta=$" * @sprintf("%.2f kJ/mol", δ), ha="left", va="center")
 	decorate_fig(L"$\frac{\partial \langle E\rangle }{\partial \langle n \rangle}-\frac{\partial \langle E\rangle_L }{\partial \langle n \rangle_L}$ [kJ/mol]")
 	tight_layout()
-	savefig("dE_dNs.pdf", format="pdf")
+	savefig("fig9.pdf", format="pdf")
 	gcf()
 end
 
@@ -620,7 +620,7 @@ begin
 	    text(0.9, kT_room, L"$k_BT_0$", 
 	        ha="center", va="center", bbox=props□)
 	    text(0.65, 4.75, L"$\delta=$" * @sprintf("%d kJ/mol", rms_mof.δ) * "\n" *
-	        L"$\epsilon_\heartsuit=$" * @sprintf("%d kJ/mol", rms_mof.ϵ♡) * "\n" * 
+	        L"$\epsilon_⭐=$" * @sprintf("%d kJ/mol", rms_mof.ϵ♡) * "\n" * 
 	        L"$\epsilon_\bigtriangleup=$" * @sprintf("%d kJ/mol", rms_mof.ϵ△), 
 	        ha="left", va="top")
 	    cbar = colorbar(label=L"$\langle n\rangle - \langle n \rangle_L$")
@@ -629,7 +629,7 @@ begin
 	    ylabel(L"$k_BT$ [kJ/mol]")
 	    title(rmsmof_class)
 	    tight_layout()
-	    savefig("n_minus_nL_" * rmsmof_class_to_savename[rmsmof_class] * ".pdf", 
+	    savefig(rmsmof_class_to_savename[rmsmof_class] * ".pdf", 
 			format="pdf")
 	end
 	gcf()
@@ -660,19 +660,16 @@ begin
 	
 	figure()
 	plot(βP, w_gas_loves_♡, lw=4, color=colorz["competition"],
-	    label=L"competition ($\epsilon_\heartsuit <\epsilon_\bigtriangleup$)",
-	    #label=L"$\beta \epsilon_\heartsuit=$" * @sprintf("%d", material_gas_loves_♡.ϵ♡) * L"$<\beta \epsilon_\bigtriangleup=$" * @sprintf("%d", material_gas_loves_♡.ϵΔ),
+	    label=L"competition ($\epsilon_⭐ <\epsilon_\bigtriangleup$)",
 	    clip_on=false
 	)
 	plot(βP, w_gas_agnostic, lw=4, color=colorz["peace"],
-	    label=L"peace ($\epsilon_\heartsuit =\epsilon_\bigtriangleup$)",
-	    #label=L"$\beta \epsilon_\heartsuit=$" * @sprintf("%d", material_gas_loves_♡.ϵ♡) * L"$<\beta \epsilon_\bigtriangleup=$" * @sprintf("%d", material_gas_loves_♡.ϵΔ),
+	    label=L"peace ($\epsilon_⭐ =\epsilon_\bigtriangleup$)",
 	    clip_on=false
 	)
 	
 	plot(βP, w_gas_loves_Δ, lw=4, color=colorz["cooperation"],
-	    label=L"cooperation ($\epsilon_\bigtriangleup <\epsilon_\heartsuit$)",
-	    #label=L"$\beta \epsilon_\bigtriangleup=$" * @sprintf("%d", material_gas_loves_Δ.ϵΔ) * L"$<\beta \epsilon_\heartsuit=$" * @sprintf("%d", material_gas_loves_Δ.ϵ♡),
+	    label=L"cooperation ($\epsilon_\bigtriangleup <\epsilon_⭐$)",
 	    clip_on=false
 	)
 	
@@ -694,13 +691,6 @@ begin
 	w_n1_cooperation = limiting_wn1(material_gas_loves_Δ, kT_room)
 	axhline(y=w_n1_competition, color=colorz["competition"], linestyle="--")
 	axhline(y=w_n1_cooperation, color=colorz["cooperation"], linestyle="--")
-# 	text(1.025, w_n1_competition, 
-# 		L"$\frac{e^{-\beta (\epsilon_\heartsuit+\delta)}}{e^{-\beta\epsilon_\bigtriangleup}+e^{-\beta (\epsilon_\heartsuit+\delta)}}$", 
-# 		va="center", ha="left", color=colorz["competition"])
-# 	text(1.025, w_n1_cooperation, 
-# 		L"$\frac{e^{-\beta (\epsilon_\heartsuit+\delta)}}{e^{-\beta\epsilon_\bigtriangleup}+e^{-\beta (\epsilon_\heartsuit+\delta)}}$", 
-# 		va="center", ha="left", color=colorz["cooperation"])
-	
 	xlabel(L"$\beta P$")
 	ylabel(L"\langle w \rangle")
 	text(0.01, 0.99, L"$\delta=$" * @sprintf("%d kJ/mol", δ) * "\n" * 
@@ -708,11 +698,11 @@ begin
 	        ha="left", va="top")
 	ylim([-0.01, 1.01])
 	xlim([-0.01, 1.01])
-	text(-0.15, 0.0, L"$\heartsuit$", va="center")
+	text(-0.15, 0.0, L"$⭐$", va="center")
 	text(-0.15, 1.0, L"$\bigtriangleup$", va="center")
 	legend()
 	tight_layout()
-	savefig("expected_w.pdf", format="pdf")
+	savefig("fig4.pdf", format="pdf")
 	gcf()
 end
 
@@ -757,14 +747,14 @@ begin
 	ylim([-0.01, 1.01])
 	xlim([-0.01, maximum(kTz)+0.02])
 	legend()
-	text(-2, 0.0, L"$\heartsuit$", va="center")
+	text(-2, 0.0, L"$⭐$", va="center")
 	text(-2, 1.0, L"$\bigtriangleup$", va="center")
 	text(6.5, 0.225, L"$\delta=$" * @sprintf("%d kJ/mol", material.δ) * "\n" *
-	    L"$\epsilon_\heartsuit=$" * @sprintf("%d kJ/mol", material.ϵ♡) * "\n" * 
+	    L"$\epsilon_⭐=$" * @sprintf("%d kJ/mol", material.ϵ♡) * "\n" * 
 	    L"$\epsilon_\bigtriangleup=$" * @sprintf("%d kJ/mol", material.ϵ△), 
 	    ha="left", va="top")
 	tight_layout()
-	savefig("expected_w_T_dependence.pdf", format="pdf")
+	savefig("fig5b.pdf", format="pdf")
 	gcf()
 end
 
@@ -797,7 +787,7 @@ begin
 		figure()
 	    pcolor(Ps, kTs, w_of_PT, cmap=plt.cm.BrBG, vmin=0.0, vmax=1.0)
 	    text(0.65, 4.75, L"$\delta=$" * @sprintf("%d kJ/mol", rms_mof.δ) * "\n" *
-	        L"$\epsilon_\heartsuit=$" * @sprintf("%d kJ/mol", rms_mof.ϵ♡) * "\n" * 
+	        L"$\epsilon_⭐=$" * @sprintf("%d kJ/mol", rms_mof.ϵ♡) * "\n" * 
 	        L"$\epsilon_\bigtriangleup=$" * @sprintf("%d kJ/mol", rms_mof.ϵ△), 
 	        ha="left", va="top")
 	    cbar = colorbar(label=L"$\langle w\rangle$")
@@ -827,7 +817,7 @@ begin
 		figure()
 	    pcolor(Ps, kTs, n_of_PT, cmap=plt.cm.Greens, vmin=0.0, vmax=1.0)
 	    text(0.65, 4.75, L"$\delta=$" * @sprintf("%d kJ/mol", rms_mof.δ) * "\n" *
-	        L"$\epsilon_\heartsuit=$" * @sprintf("%d kJ/mol", rms_mof.ϵ♡) * "\n" * 
+	        L"$\epsilon_⭐=$" * @sprintf("%d kJ/mol", rms_mof.ϵ♡) * "\n" * 
 	        L"$\epsilon_\bigtriangleup=$" * @sprintf("%d kJ/mol", rms_mof.ϵ△), 
 	        ha="left", va="top")
 	    cbar = colorbar(label=L"$\langle n\rangle$")
